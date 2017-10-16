@@ -24,19 +24,43 @@
     const win = window;
     const doc = win.document;
     /*构造函数*/
-    let Chat = function(arg){
-        
+    let Chat = function(selector){
+        return new Chat.fn.init(selector);
     };
+    Chat.fn = Chat.prototype = {
+        init : function(selector){
+            var nodes = document.querySelectorAll(selector);
+            var i = 0,len = nodes.length;
+            for (; i < len; i++) {
+                this[i] = nodes[i];
+            }
+            this.length = len;
+            return this;
+        },
+        load : function(){
+            Chat.load(this[0]);
+            return this;
+        },
+        push : [].push,
+        sort : [].sort,
+        splice : [].splice,
+        slice : [].slice
+    };
+    Chat.fn.init.prototype = Chat.fn;
+    //挂载到window
+    win.Chat = Chat;
     /*640为稿*/
-    /*初始化*/
-    let head = window.CHAT_CONFIG.head;
-    let _doc = doc.createDocumentFragment();
-    let box = doc.createElement("section");
-    let dev = doc.documentElement.offsetWidth>640 ? 640 : doc.documentElement.offsetWidth;
+    /*载入容器*/
+    Chat.load = function(elm){
+        let head = window.CHAT_CONFIG.head;
+        let _doc = doc.createDocumentFragment();
+        let box = doc.createElement("section");
+        let content = elm || doc.body;
+        let dev = content.clientWidth > 640 ? 640 : content.clientWidth;
 
-    box.id = "chat";
-    box.style.fontSize = dev/6.4 + 'px';
-    box.innerHTML = `
+        box.id = "chat";
+        box.style.fontSize = dev/6.4 + 'px';
+        box.innerHTML = `
     <div class="head">
         <div class="left"></div>
         <div class="center"></div>
@@ -59,36 +83,40 @@
         </div>
     </div>
     `;
-    /*载入文档片段*/
-    _doc.appendChild(box);
+        /*载入文档片段*/
+        _doc.appendChild(box);
 
-    /*遍历配置-载入头部*/
-    for (let i = 0; i < head.length; i++) {
-        let link = doc.createElement("a");
-        let span = doc.createElement("span");
-        if(head[i].icon){
-            head[i].href ? link.href = head[i].href : "";
-            link.innerHTML = '<svg><use xlink:href="svg/icons.svg#'+head[i].icon+'"></use></svg>';
+        /*遍历配置-载入头部*/
+        for (let i = 0; i < head.length; i++) {
+            let link = doc.createElement("a");
+            let span = doc.createElement("span");
+            if(head[i].icon){
+                head[i].href ? link.href = head[i].href : "";
+                link.innerHTML = '<svg><use xlink:href="svg/icons.svg#'+head[i].icon+'"></use></svg>';
+            }
+            switch(head[i].position){
+                case "left":
+                case "center":
+                    if(head[i].info){
+                        span.innerText = head[i].info;
+                        link.appendChild(span);
+                    }
+                    _doc.querySelector("div."+head[i].position).appendChild(link);
+                    break;
+                case "right":
+                    if(head[i].info){
+                        span.innerText = head[i].info;
+                        // 文字在左，图标在右
+                        link.firstChild ? link.insertBefore(span,link.firstChild) : link.appendChild(span);
+                    }
+                    _doc.querySelector("div."+head[i].position).appendChild(link);
+                    break;
+            }
         }
-        switch(head[i].position){
-            case "left":
-            case "center":
-                if(head[i].info){
-                    span.innerText = head[i].info;
-                    link.appendChild(span);
-                }
-                _doc.querySelector("div."+head[i].position).appendChild(link);
-                break;
-            case "right":
-                if(head[i].info){
-                    span.innerText = head[i].info;
-                    // 文字在左，图标在右
-                    link.firstChild ? link.insertBefore(span,link.firstChild) : link.appendChild(span);
-                }
-                _doc.querySelector("div."+head[i].position).appendChild(link);
-                break;
-        }
-    }
-    /*将片段载入文档*/
-    doc.body.appendChild(_doc);
+        /*将片段载入容器*/
+        (content != doc.body && win.getComputedStyle(content).position == 'static') ? (content.style.position = 'relative') : null;
+        content.appendChild(_doc);
+    };
+
 });
+Chat('#contain').load();
