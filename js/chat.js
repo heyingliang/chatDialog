@@ -19,7 +19,7 @@
     };
     // run
     factory();
-})(function(config){
+})(function(){
     'use strict';
     const win = window;
     const doc = win.document;
@@ -78,8 +78,8 @@
     </div>
     <div class="foot">
         <div class="import">
-            <p contenteditable="true"></p>
-            <input type="button" value="发送">
+            <p contenteditable="true" id="message"></p>
+            <input id="send" type="button" value="发送" disabled="disabled">
         </div>
     </div>
     `;
@@ -113,10 +113,45 @@
                     break;
             }
         }
-        /*将片段载入容器*/
-        (content != doc.body && win.getComputedStyle(content).position == 'static') ? (content.style.position = 'relative') : null;
+        // 容器为body还是其他
+        (content != doc.body) && (win.getComputedStyle(content).position == 'static') ? (content.style.position = 'relative') : null;
+        // 按钮输入信息时变色
+        let mes_el = _doc.getElementById('message');
+        mes_el.oninput = function(e){
+            if(this.innerText == ''){
+                this.ownerDocument.getElementById('send').disabled = 'disabled';
+            }else{
+                this.ownerDocument.getElementById('send').disabled = '';
+            }
+        };
+        let socket = new WebSocket('ws://localhost:8181');
+        socket.onopen = function(e){
+            console.log('已连接！');
+        };
+        socket.onmessage = function(e){
+            console.log('返回信息：'+e.data);
+        };
+        socket.onclose = function(e){
+            console.log('连接已断开！');
+        };
+        socket.onerror = function(e){
+            console.log('发生错误！');
+        };
+        //发送
+        _doc.getElementById('send').onclick = function(e){
+            let mes_frag = doc.createDocumentFragment();
+            let box = doc.createElement('div');
+            box.className = 'news right';
+            box.innerHTML = '<a><svg><use xlink:href="svg/icons.svg#Nile"></use></svg></a>\
+            <p class="loading">'+mes_el.innerText+'</p>';
+            mes_frag.appendChild(box);
+            //添加到信息框
+            doc.querySelector('.content').appendChild(mes_frag);
+            //发送
+            socket.send(mes_el.innerText);
+            // console.log(mes_frag);
+        };
         content.appendChild(_doc);
     };
-
 });
-Chat('#contain').load();
+Chat('body').load();

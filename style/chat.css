@@ -115,7 +115,31 @@ input{outline: none;}
 }
 #chat .content div.right>p{
     float: right;
+    position: relative;
     margin-right: 0.77em;
+}
+#chat .content div.right>p.loading:before{
+    content: '';
+    position: absolute;
+    left:-1.5em;
+    top:0;
+    width:1em;
+    height:1em;
+    border: 1px solid;
+    border-color: transparent #8965b3 transparent #8965B3;
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    -webkit-animation: loading 1s infinite;
+    animation: loading 1s infinite;
+}
+@-webkit-keyframes loading {
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+@keyframes loading {
+    to {
+        transform: rotate(360deg);}
 }
 /* foot */
 #chat .foot{
@@ -131,6 +155,7 @@ input{outline: none;}
 }
 #chat .foot .import{
     position: relative;
+    min-height: 1.5em;
     overflow-x: auto;
 }
 #chat .foot .import>*{
@@ -154,7 +179,7 @@ input{outline: none;}
 #chat .foot .import>p::-webkit-scrollbar{
     width: 0;
 }
-#chat .foot input[type="button"]{
+#chat .foot .import>input{
     position: absolute;
     bottom: 0;
     font-size: 0.6em;
@@ -162,5 +187,9 @@ input{outline: none;}
     height: 2.5em;
     border-radius: 0.2em;
     color: #fff;
+    background-color: #00bce6;
+}
+#chat .foot .import>input[disabled]{
     background-color: #dddee2;
 }
+
