@@ -1,11 +1,10 @@
-var webSocketServer = require('ws').Server,
+const webSocketServer = require('ws').Server,
     wss = new webSocketServer({port:8181});
-var uid = require('node-uuid');
-wss.on('connection',function(ws){
-    console.log('client Connected');
+const url = require('url');
+wss.on('connection',function(ws,req){
+    console.log(url.parse(req.url));
     ws.on('message', function (message) {
         console.log(message);
-        ws.send('收到数据:'+message);
-        console.log(uid.v1());
+        ws.send('我收到'+message);
     });
 });

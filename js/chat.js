@@ -124,7 +124,12 @@
                 this.ownerDocument.getElementById('send').disabled = '';
             }
         };
-        let socket = new WebSocket('ws://localhost:8181');
+        //信息
+        let json = {
+            id : 1,
+            user : 'aa'
+        };
+        let socket = new WebSocket('ws://localhost:8181/?user='+JSON.stringify(json)+'&a=2');
         socket.onopen = function(e){
             console.log('已连接！');
         };
