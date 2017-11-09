@@ -1,10 +1,31 @@
-const webSocketServer = require('ws').Server,
+/*const webSocketServer = require('ws').Server,
     wss = new webSocketServer({port:8181});
-const url = require('url');
 wss.on('connection',function(ws,req){
-    console.log(url.parse(req.url));
     ws.on('message', function (message) {
-        console.log(message);
-        ws.send('我收到'+message);
+        ws.send(message);
+    });
+});
+*/
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({port: 8181});
+
+// Broadcast to all.
+wss.broadcast = function broadcast(data) {
+    wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(data);
+        }
+    });
+};
+wss.on('connection', function connection(ws,req) {
+    ws.on('message', function incoming(data) {
+        // Broadcast to everyone else.
+        wss.clients.forEach(function each(client) {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+                client.send(data);
+            }
+        });
+        ws.send(JSON.stringify({verify : true}));
     });
 });

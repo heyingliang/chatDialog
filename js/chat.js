@@ -61,28 +61,19 @@
         box.id = "chat";
         box.style.fontSize = dev/6.4 + 'px';
         box.innerHTML = `
-    <div class="head">
-        <div class="left"></div>
-        <div class="center"></div>
-        <div class="right"></div>
-    </div>
-    <div class="content">
-        <div class="news left">
-            <a><svg><use xlink:href="svg/icons.svg#farm"></use></svg></a>
-            <p>一段信息</p>
+        <div class="head">
+            <div class="left"></div>
+            <div class="center"></div>
+            <div class="right"></div>
         </div>
-        <div class="news right">
-            <a><svg><use xlink:href="svg/icons.svg#Nile"></use></svg></a>
-            <p>很长的很长的很长的很长的很长的很长的很长的很长的很长的另一段信息</p>
+        <div class="content"></div>
+        <div class="foot">
+            <div class="import">
+                <p contenteditable="true" id="message"></p>
+                <input id="send" type="button" value="发送" disabled="disabled">
+            </div>
         </div>
-    </div>
-    <div class="foot">
-        <div class="import">
-            <p contenteditable="true" id="message"></p>
-            <input id="send" type="button" value="发送" disabled="disabled">
-        </div>
-    </div>
-    `;
+        `;
         /*载入文档片段*/
         _doc.appendChild(box);
 
@@ -115,26 +106,39 @@
         }
         // 容器为body还是其他
         (content != doc.body) && (win.getComputedStyle(content).position == 'static') ? (content.style.position = 'relative') : null;
+        content.appendChild(_doc);
         // 按钮输入信息时变色
-        let mes_el = _doc.getElementById('message');
-        mes_el.oninput = function(e){
+        let mes_input = doc.getElementById('message');
+        mes_input.oninput = function(e){
             if(this.innerText == ''){
-                this.ownerDocument.getElementById('send').disabled = 'disabled';
+                this.ownerDocument.getElementById('send').disabled = "disabled";
             }else{
-                this.ownerDocument.getElementById('send').disabled = '';
+                this.ownerDocument.getElementById('send').disabled = "";
             }
         };
+
         //信息
-        let json = {
-            id : 1,
-            user : 'aa'
+        let mes_json = {
+            sendUser : "user1",
+            dataId : 0,
+            data : ""
         };
-        let socket = new WebSocket('ws://localhost:8181/?user='+JSON.stringify(json)+'&a=2');
+        let socket = new WebSocket('ws://localhost:8181/');
         socket.onopen = function(e){
             console.log('已连接！');
         };
         socket.onmessage = function(e){
-            console.log('返回信息：'+e.data);
+            let mes = JSON.parse(e.data);
+            if (mes.verify) {
+                doc.querySelector(".loading").classList.remove("loading");
+            }else{
+                let box = document.createElement("div");
+                box.className = "news left";
+                box.innerHTML = "<a><svg><use xlink:href='svg/icons.svg#farm'></use></svg></a>"+
+                    "<p>"+mes.data+"</p>";
+                doc.querySelector("#chat>.content").appendChild(box);
+            }
+            
         };
         socket.onclose = function(e){
             console.log('连接已断开！');
@@ -143,20 +147,20 @@
             console.log('发生错误！');
         };
         //发送
-        _doc.getElementById('send').onclick = function(e){
-            let mes_frag = doc.createDocumentFragment();
-            let box = doc.createElement('div');
-            box.className = 'news right';
-            box.innerHTML = '<a><svg><use xlink:href="svg/icons.svg#Nile"></use></svg></a>\
-            <p class="loading">'+mes_el.innerText+'</p>';
-            mes_frag.appendChild(box);
+        doc.getElementById("send").onclick = function(e){
             //添加到信息框
-            doc.querySelector('.content').appendChild(mes_frag);
-            //发送
-            socket.send(mes_el.innerText);
-            // console.log(mes_frag);
+            let box = doc.createElement("div");
+            box.className = "news right";
+            box.innerHTML = "<a><svg><use xlink:href='svg/icons.svg#Nile'></use></svg></a>"+
+                "<p class='loading'>"+mes_input.innerText+"</p>";
+            doc.querySelector('.content').appendChild(box);
+
+            mes_json.dataId += 1;
+            mes_json.data = mes_input.innerText;
+            socket.send(JSON.stringify(mes_json));
+            // 清空
+            mes_input.innerText = "";
         };
-        content.appendChild(_doc);
     };
 });
 Chat('body').load();
