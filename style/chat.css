@@ -93,6 +93,7 @@ input{outline: none;}
     padding: 0.615em;
     border-radius: 0.615em;
     background-color: #fff;
+    word-wrap: break-word;
 }
 #chat .content svg{
     display: block;
